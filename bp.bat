@@ -8,3 +8,6 @@ if "%2" == "" (
     robocopy ./boilerplates/ ./ "%1.c" /nfl /ndl /njs /ns /njh /nc
     ren "%1.c" "%2.c"
 )
+
+rem Create test case file
+echo. > "%1.tc"

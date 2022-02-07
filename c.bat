@@ -38,41 +38,43 @@ rem Supports multiple cases, just concatonate them in the file as shown above
 
 rem Some declarations
 set allpass=true
-set test=
-set res=
+copy NUL test > NUL
+copy NUL res > NUL
 set mod=test
 set /A n=1
 
 for /F "tokens=*" %%L in (%1.tc) do (
     if "%%L" == "case" (
-        echo !test! > test
-        echo !res! > expected
-
         echo Running test !n!:
-        type test | "%1.exe" > results
+        echo Input:
+        type test
+        echo.
+        (type test) | "%1.exe" > results
         type results
         echo.
         echo Expected output:
-        echo !res!
+        type res
 
-        fc /w expected results >nul&&echo Passed||(echo Failed & set allpass=%n%)
+        fc /w res results >nul&&echo Passed||(echo Failed & set allpass=%n%)
         echo ---------------------------------------
 
         set /A n+=1
 
         rem Clear test case vars
-        set test=
-        set res=
+        copy NUL test > NUL
+        copy NUL res > NUL
         set mod=test
     ) else (
         if "%%L" == "result" (
             set mod=res
         ) else (
             if "!mod!" == "test" (
-                set test=!test!%%L!nl!
+                (echo %%L^
+                ) >> test
             ) else (
                 rem Results section
-                set res=!res!%%L!nl!
+                (echo %%L^
+                ) >> res
             )
         )
     )
@@ -86,7 +88,7 @@ if "%allpass%" == "true" (
 
 del test
 del results
-del expected
+del res
 
 :deletion
 if "%2" == "d" del "%1.exe"
