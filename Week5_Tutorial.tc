@@ -1,0 +1,22 @@
+5
+1.0
+a h
+begin results
+a! h!
+end case
+pizza apples cake 
+begin results
+pizza! apples! cake! 
+end case
+a! h! r!
+begin results
+a!! h!! r!!
+end case
+
+begin results
+
+end case
+apples
+begin results
+apples!
+end case
