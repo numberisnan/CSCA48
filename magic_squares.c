@@ -7,6 +7,106 @@
 ////////////////////////////////////////////////
 #include<stdio.h>
 #include<stdlib.h>
+int rowsum(int sq[6][6], int row) {
+    int sum = 0;
+    for (int i = 0; i < 6; i++) {
+        sum += sq[row][i];
+    }
+
+    return sum;
+}
+
+int colsum(int sq[6][6], int col) {
+    int sum = 0;
+    for (int i = 0; i < 6; i++) {
+        sum += sq[i][col];
+    }
+
+    return sum;
+}
+
+int unknownsinrow(int sq[6][6], int row) {
+    int sum = 0;
+    for (int i = 0; i < 6; i++) {
+        if (sq[row][i] == -1) {
+            sum++;
+        }
+    }
+    return sum;
+}
+
+int unkownsincolumn(int sq[6][6], int col) {
+    int sum = 0;
+    for (int i = 0; i < 6; i++) {
+        if (sq[i][col] == -1) {
+            sum++;
+        }
+    }
+    return sum;
+}
+
+int solved(int square[6][6]) {
+    for (int i = 0; i < 6; i++) {
+        if (unknownsinrow(square, i)) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int getvalue(int sq[6][6]) {
+    for (int i = 0; i < 6; i++) {
+        if (!unknownsinrow(sq, i)) {
+            return rowsum(sq, i);
+        } else if (!unkownsincolumn(sq, i)) {
+            return colsum(sq, i);
+        }
+    } 
+    return -1;
+}
+
+void solvesingleunknownrow(int sq[6][6], int row, int value) {
+    // Find index of unknown
+    int ind = -1;
+    for (int i = 0; i < 6; i++) {
+        if (sq[row][i] == -1) {
+            ind = i;
+        }
+    }
+
+    // Sum all the others
+    int sum = 0;
+    for (int i = 0; i < 6; i++) {
+        sum += sq[row][i];
+    }
+    sum++; //Undo adding -1
+
+    //Replace
+    sq[row][ind] = value - sum;
+
+}
+
+void solvesingleunknowncol(int sq[6][6], int col, int value) {
+    // Find index of unknown
+    int ind = -1;
+    for (int i = 0; i < 6; i++) {
+        if (sq[i][col] == -1) {
+            ind = i;
+        }
+    }
+
+    // Sum all the others
+    int sum = 0;
+    for (int i = 0; i < 6; i++) {
+        sum += sq[i][col];
+    }
+    sum++; //Undo adding -1
+
+    //Replace
+    sq[ind][col] = value - sum;
+
+}
 
 void solveMagicSquare(int square[6][6])
 {
@@ -41,6 +141,19 @@ void solveMagicSquare(int square[6][6])
  //////////////////////////////////////
  // TO DO: Complete this function
  //////////////////////////////////////
+
+int value = getvalue(square);
+while (!solved(square)) {
+    for (int i = 0; i < 6; i++) {
+        if (unknownsinrow(square, i) == 1) {
+            solvesingleunknownrow(square, i, value);
+        }
+        if (unkownsincolumn(square, i) == 1) {
+            solvesingleunknowncol(square, i, value);
+        } 
+    }
+}
+
 }
 
 
