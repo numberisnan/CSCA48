@@ -359,6 +359,61 @@ ReviewNode *deleteReviewList(ReviewNode *head)
  * your basic linked list is working properly and is fully tested!
  */ 
 
+int leftGreater(ReviewNode* left, ReviewNode* right) {
+    return (int)(strcmp(left->review.movie_title, right->review.movie_title) > 0);
+}
+
+typedef struct poptype_struct {
+    ReviewNode* head;
+    ReviewNode* curr;
+} poptype;
+
+poptype popReview(ReviewNode* head) {
+    poptype res;
+    if (head == NULL) {
+        printf("Cannot remove from empty queue");
+    }
+
+    res.curr = head;
+    res.head = head->next;
+    head->next = NULL; //Sever link
+
+    
+    return res;
+}
+
+ReviewNode* insertSorted(ReviewNode* new, ReviewNode* head) {
+    //printf("Inesrting %s\n", new->review.movie_title);
+    ReviewNode* next;
+    if (head == NULL) {
+        //printf("Added to empty\n");
+        return new;
+    }
+    // Check if it replaces head
+    if (leftGreater(head, new)) {
+        new->next = head;
+        //printf("Added to head\n");
+        return new;
+    }
+
+    ReviewNode* found = head;
+    while(found->next != NULL && leftGreater(new, found->next)) {
+        found = found->next;
+    }
+
+    if (found->next == NULL) {
+        // tail
+        found->next = new;
+        //printf("Added to tail\n");
+    } else {
+        next = found->next;
+        found->next = new;
+        new->next = next;
+        //printf("Added to mid after %s\n", found->review.movie_title);
+    }
+    return head; 
+}
+
 ReviewNode *sortReviewsByTitle(ReviewNode *head)
 {
   /*
@@ -368,16 +423,20 @@ ReviewNode *sortReviewsByTitle(ReviewNode *head)
    * 
    * However you implement this function, it must return a pointer to the head
    * node of the sorted list.
-   */
+   */  
 
-    /***************************************************************************/
-    /**********  TO DO: Complete this function *********************************/
-    /***************************************************************************/    
+    //InsertionSort
+    // Sorthead will be head of sorted, while head is head of unsorted
+    ReviewNode* sorthead = NULL;
+    poptype res;
+    while (countReviews(head)) {
+        res = popReview(head);
+        head = res.head;
+        sorthead = insertSorted(res.curr, sorthead);
+    }
 
-    //Mergesort
-      
         
-    return NULL;            // Remove this before you implement your solution
+    return sorthead;            // Remove this before you implement your solution
 }
 
 void insertCastMember(char title[MAX_STR_LEN], char studio[MAX_STR_LEN], int year, ReviewNode *head, char name[MAX_STR_LEN], float salary)
@@ -399,24 +458,69 @@ void insertCastMember(char title[MAX_STR_LEN], char studio[MAX_STR_LEN], int yea
    * into the cast list.
    */
     ReviewNode* found = findMovieReview(title, studio, year, head);
+    CastList* new;
+    CastList* foundcast;
 
     if (found != NULL) {
-        CastList* new = (CastList*)calloc(1, sizeof(CastList));
+        new = (CastList*)calloc(1, sizeof(CastList));
         strcpy(new->name, name);
         new->salary = salary;
         new->next = NULL;
 
-        if (found->review.cast != NULL) {
-            while(found->review.cast->next != NULL) {
-                found->review.cast = found->review.cast->next;
+        foundcast = found->review.cast;
+        if (foundcast != NULL) { //Empty cast
+            while(foundcast->next != NULL) {
+                foundcast = foundcast->next;
             } //Now at the last element in list
 
-            found->review.cast->next = new;
+            foundcast->next = new;
         } else {
             found->review.cast = new;
         }
     }
   
+}
+
+typedef struct CastStruct {
+    char name[MAX_STR_LEN];
+    int earningSum;
+    int movies;
+} Cast;
+
+typedef struct CastArrayStruct {
+    Cast actors[100000];
+    int size;
+} CastArray;
+
+float salarySum(CastList* head) {
+    //printf("salarySum start\n");
+    float s = 0;
+    while (head != NULL) {
+        //printf("actor %s\n", head->name);
+        s += head->salary;
+        head = head->next;
+    }
+    //printf("salarySum end\n");
+
+    return s;
+}
+
+void modActor(char name[MAX_STR_LEN], float earnings, CastArray* a) {
+    int exists = 0;
+    for (int i = 0; i < a->size; i++) {
+        if (!strcmp(a->actors[i].name, name)) {
+            a->actors[i].earningSum += earnings;
+            a->actors[i].movies++;
+            exists = 1;
+        }
+    }
+
+    if (!exists) {
+        strcpy(a->actors[a->size].name, name);
+        a->actors[a->size].earningSum = earnings;
+        a->actors[a->size].movies = 1;
+        a->size++;
+    }
 }
 
 void whosTheStar(ReviewNode *head)
@@ -443,8 +547,54 @@ void whosTheStar(ReviewNode *head)
    *  For the cast member whose movies make the greatest average earnings
    */
 
-    /***************************************************************************/
-    /**********  TO DO: Complete this function *********************************/
-    /***************************************************************************/      
+    CastArray* a = (CastArray*)calloc(1, sizeof(CastArray));
+    a->size = 0;
 
+    CastList* cast;
+    float earnings;
+    while (head != NULL) {
+        //printf("Movie %s\n", head->review.movie_title);
+        cast = head->review.cast;
+        earnings = head->review.BO_total - salarySum(cast);
+        //printf("Earnings %f\n", earnings);
+        while (cast != NULL) {
+            //printf("Actor %s\n", cast->name);
+            modActor(cast->name, earnings, a);
+            cast = cast->next;
+        }
+        head = head->next;
+    }
+
+    Cast star;
+    star.earningSum = 0;
+    strcpy(star.name,"No actors!");
+    star.movies = 1;
+    for (int i = 0; i < a->size; i++) {
+        if (a->actors[i].earningSum / (float)a->actors[i].movies > star.earningSum / (float)star.movies) {
+            star = a->actors[i];
+        }
+    }
+
+    printf("%s\n%f\n", star.name, star.earningSum / (float)star.movies);
+    for (int i = 0; i < a->size; i++) {
+        //printf("%s %f\n", a->actors[i].name, a->actors[i].earningSum / (float)a->actors[i].movies);
+    }
+
+    free(a);
+
+}
+
+void printNames(ReviewNode *movie)
+{
+    // Prints out names of cast members for this movie
+    CastList *p;
+    if (movie == NULL || movie->review.cast == NULL)
+        return;
+    p = movie->review.cast;
+    printf("The cast for this movie are:\n");
+    while (p != NULL)
+    {
+        printf("Cast Member: %s, Salary: %f\n", p->name, p->salary);
+        p = p->next;
+    }
 }
