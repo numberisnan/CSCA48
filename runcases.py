@@ -20,7 +20,7 @@ if filetype == "cpp":
 elif filetype == "c":
     print("Type: C")
     print("Compiling " + filepath)
-    os.system("gcc -Wall ./" + filepath + " -o " + EXENAME + ".exe")
+    os.system("gcc -Wall -std=c99 -pedantic ./" + filepath + " -o " + EXENAME + ".exe")
     print("Done compiling!")
 elif filetype == "py":
     print("Type: Python")
