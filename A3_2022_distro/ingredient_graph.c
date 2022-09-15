@@ -62,8 +62,8 @@
 
 #define MAX_STR_LEN 1024
 #ifndef __testing
-#define MAT_SIZE 10	// Use the small graph
-//#define MAT_SIZE 400	// Use full-size graph
+//#define MAT_SIZE 10	// Use the small graph
+#define MAT_SIZE 400	// Use full-size graph
 #endif
 
 // The following are GLOBAL variables you can use
